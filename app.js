@@ -1,11 +1,21 @@
 import express from 'express'
 import { randomBytes } from 'crypto'
 import { notesData } from './data/notes.js'
-
+let notes = [ ...notesData ]
 const generateId = () => randomBytes(2).toString('hex')
 const app = express()
 
-let notes = [ ...notesData ]
+const logger = (req, res, next) => {
+  console.log(req.method, req.url);
+  next()
+}
+const RouteNotFound = (req, res) => {
+  res.statusCode = 404
+  res.statusMessage = 'Route not found'
+  res.json({ error: 'Route not found' })
+}
+
+app.use(logger)
 app.use(express.json())
 
 app.get('/', (req, res) => {
@@ -52,4 +62,6 @@ app.post('/notes', (req, res) => {
   res.status(201).json(note)
 })
 
+
+app.use(RouteNotFound)
 export default app
