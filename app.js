@@ -9,6 +9,7 @@ const logger = (req, res, next) => {
   console.log(req.method, req.url);
   next()
 }
+
 const RouteNotFound = (req, res) => {
   res.statusCode = 404
   res.statusMessage = 'Route not found'
@@ -17,6 +18,7 @@ const RouteNotFound = (req, res) => {
 
 app.use(logger)
 app.use(express.json())
+app.use(express.static('build'))
 
 app.get('/', (req, res) => {
   res.send('it works')
