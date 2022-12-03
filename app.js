@@ -1,7 +1,7 @@
 import express from 'express'
-import { randomBytes } from 'crypto'
-import { notesData } from './data/notes.js'
-let notes = [ ...notesData ]
+import { getNotes, getNote, createNote, deleteNote, updateNoteImportance } from './db/model.js'
+
+// let notes = [ ...notesData ]
 const generateId = () => randomBytes(2).toString('hex')
 const app = express()
 
@@ -13,7 +13,7 @@ const logger = (req, res, next) => {
 const RouteNotFound = (req, res) => {
   res.statusCode = 404
   res.statusMessage = 'Route not found'
-  res.json({ error: 'Route not found' })
+  res.json({ message: 'Route not found' })
 }
 
 app.use(logger)
@@ -24,13 +24,15 @@ app.get('/', (req, res) => {
   res.send('it works')
 })
 
-app.get('/notes', (req, res) => {
+app.get('/notes', async (req, res) => {
+  const notes = await getNotes()
   res.status(200).json(notes)
 })
 
-app.get('/notes/:id', (req, res) => {
+app.get('/notes/:id', async (req, res) => {
   const { id } = req.params
-  const note = notes.find(n => n.id === id)
+//  const note = notes.find(n => n.id === id)
+  const note = await getNote(id)
   if(note) {
     res.status(200).json(note)
   } else {
@@ -39,31 +41,45 @@ app.get('/notes/:id', (req, res) => {
   }
 })
 
-app.delete('/notes/:id', (req, res) => {
+app.delete('/notes/:id', async (req, res) => {
   const { id } = req.params
-  notes = notes.filter(note => note.id !== id)
-  res.statusCode = 204
-  res.end()
+  const response = await deleteNote(id)
+  if(response) {
+    res.statusCode = 204
+    res.end()
+  } else {
+    res.status(400).json({ message: 'note not found.' })
+  }
 })
 
-app.post('/notes', (req, res) => {
+app.post('/notes', async (req, res) => {
   const body = req.body
   if(!body.content) {
     return res.status(400).json({
       error: 'content missing'
     })
   }
-  const id = generateId()
-  const note = { 
-    id, 
+//  const id = generateId()
+  const userData = { 
     content: body.content,
     date: new Date(),
     important: body.important || Math.random() > 0.5 ? true : false
   }
-  notes.push(note)
+  const note = await createNote(userData) 
   res.status(201).json(note)
 })
 
+app.put('/notes/:id', async (req, res) => {
+  const body = req.body
+  const id = req.params.id
+  const response = await updateNoteImportance(id, body.important)
+  if(response) {
+    return res.status(200).json(response)
+  } else {
+    res.statusMessage = 'Note can not found.'
+    res.status(404).json({ message: 'note can not found.'}) 
+  }
+})
 
 app.use(RouteNotFound)
 export default app
