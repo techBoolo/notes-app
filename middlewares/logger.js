@@ -1,5 +1,7 @@
+import log from '../utils/log.js'
+
 const logger = (req, res, next) => {
-  console.log(req.method, req.url);
+  log.info(req.method, req.url);
   next()
 }
 

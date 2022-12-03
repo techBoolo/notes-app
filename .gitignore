@@ -3,6 +3,4 @@ requests
 *.swp
 *.swo
 .env
-data
 next
-/db/config.js
