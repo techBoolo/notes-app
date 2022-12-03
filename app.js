@@ -1,20 +1,12 @@
 import express from 'express'
+import('express-async-errors')
 import { getNotes, getNote, createNote, deleteNote, updateNoteImportance } from './db/model.js'
+import ErrorResponse from './utils/errorResponse.js'
+import routeNotFound from './middlewares/routeNotFound.js'
+import errorHandler  from './middlewares/errorHandler.js'
+import logger  from './middlewares/logger.js'
 
-// let notes = [ ...notesData ]
-const generateId = () => randomBytes(2).toString('hex')
 const app = express()
-
-const logger = (req, res, next) => {
-  console.log(req.method, req.url);
-  next()
-}
-
-const RouteNotFound = (req, res) => {
-  res.statusCode = 404
-  res.statusMessage = 'Route not found'
-  res.json({ message: 'Route not found' })
-}
 
 app.use(logger)
 app.use(express.json())
@@ -29,57 +21,72 @@ app.get('/notes', async (req, res) => {
   res.status(200).json(notes)
 })
 
-app.get('/notes/:id', async (req, res) => {
-  const { id } = req.params
-//  const note = notes.find(n => n.id === id)
-  const note = await getNote(id)
-  if(note) {
-    res.status(200).json(note)
-  } else {
-    res.statusMessage = "Note can't find" 
-    res.status(404).end()
+app.get('/notes/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const note = await getNote(id)
+    if(note) {
+      res.status(200).json(note)
+    } else {
+      throw new ErrorResponse(404, "Note can't find")
+    }
+  } catch (err) {
+    const error = new ErrorResponse(err.statusCode, err.message)
+    next(error)
   }
 })
 
 app.delete('/notes/:id', async (req, res) => {
-  const { id } = req.params
-  const response = await deleteNote(id)
-  if(response) {
-    res.statusCode = 204
-    res.end()
-  } else {
-    res.status(400).json({ message: 'note not found.' })
+  try {
+    const { id } = req.params
+    const response = await deleteNote(id)
+    if(response) {
+      res.statusCode = 204
+      res.end()
+    } else {
+      res.status(400).json({ message: 'note not found.' })
+    }
+  } catch (err) {
+    const error = new ErrorResponse(400, err.message)
+    next(error)
   }
 })
 
-app.post('/notes', async (req, res) => {
-  const body = req.body
-  if(!body.content) {
-    return res.status(400).json({
-      error: 'content missing'
-    })
+app.post('/notes', async (req, res, next) => {
+  try {
+    const body = req.body
+    if(!body.content) {
+      throw new ErrorResponse(400, 'content missingg')
+    }
+    const userData = { 
+      content: body.content,
+      date: new Date(),
+      important: body.important || Math.random() > 0.5 ? true : false
+    }
+    const note = await createNote(userData) 
+    res.status(201).json(note)
+  } catch (err) {
+    const error = new ErrorResponse(err.statusCode, err.message)
+    next(error)
   }
-//  const id = generateId()
-  const userData = { 
-    content: body.content,
-    date: new Date(),
-    important: body.important || Math.random() > 0.5 ? true : false
-  }
-  const note = await createNote(userData) 
-  res.status(201).json(note)
 })
 
-app.put('/notes/:id', async (req, res) => {
+app.put('/notes/:id', async (req, res, next) => {
   const body = req.body
   const id = req.params.id
-  const response = await updateNoteImportance(id, body.important)
-  if(response) {
-    return res.status(200).json(response)
-  } else {
-    res.statusMessage = 'Note can not found.'
-    res.status(404).json({ message: 'note can not found.'}) 
+  try {
+    const response = await updateNoteImportance(id, body.important)
+    if(response) {
+      return res.status(200).json(response)
+    } else {
+      throw new ErrorResponse(404, "Note can't found.")
+    }
+  } catch (err) {
+    const error = new ErrorResponse(err.statusCode, err.message)
+    next(error)
   }
 })
 
-app.use(RouteNotFound)
+app.use(routeNotFound)
+app.use(errorHandler)
 export default app
