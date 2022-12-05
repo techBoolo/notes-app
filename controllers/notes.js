@@ -1,4 +1,4 @@
-import { getNotes, getNote, createNote, deleteNote, updateNoteImportance } from '../db/model.js'
+import { getNotes, getNote, createNote, deleteNote, updateNoteImportance } from '../db/note.js'
 import ErrorResponse from '../utils/errorResponse.js'
 import('express-async-errors')
 
@@ -15,7 +15,8 @@ const create = async (req, res, next) => {
     const userData = { 
       content: body.content,
       date: new Date(),
-      important: body.important || Math.random() > 0.5 ? true : false
+      important: body.important || Math.random() > 0.5 ? true : false,
+      user: 2
     }
     const note = await createNote(userData) 
     res.status(201).json(note)

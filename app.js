@@ -1,10 +1,10 @@
 import express from 'express'
-import { getNote, deleteNote, updateNoteImportance } from './db/model.js'
 import ErrorResponse from './utils/errorResponse.js'
 import routeNotFound from './middlewares/routeNotFound.js'
 import errorHandler  from './middlewares/errorHandler.js'
 import logger  from './middlewares/logger.js'
 import notesRoute from './routes/notes.js'
+import usersRoute from './routes/users.js'
 
 const app = express()
 
@@ -17,6 +17,7 @@ app.get('/', (req, res) => {
 })
 
 app.use('/notes', notesRoute)
+app.use('/users', usersRoute)
 
 app.use(routeNotFound)
 app.use(errorHandler)
