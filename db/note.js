@@ -28,20 +28,21 @@ export async function createNote(userData) {
 }
 
 export async function deleteNote(id) {
-  const [ result ] = await pool.query(`
-    delete from notes
+  const stmt = ` delete from notes
     where _id = ?
-  `, [id])
+    `
+  const [ result ] = await pool.query(stmt, [id])
 
   return result.affectedRows
 }
   
 export async function updateNoteImportance(id, important) {
-  const [ result ]  = await pool.query(`
-    update notes 
+  const stmt = `update notes 
       set important = ? 
-        where _id = ?
-    `, [important, id])
+      where _id = ?
+    `
+  const [ result ]  = await pool.query(stmt, [important, id])
+
   if(result.changedRows > 0) {
     return await getNote(id)
   } else {

@@ -9,4 +9,7 @@ router.route('/')
 router.route('/:id')
   .get(usersController.show)
 
+router.route('/:id/notes') 
+  .get(usersController.notes)
+
 export default router

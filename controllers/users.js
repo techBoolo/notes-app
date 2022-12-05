@@ -1,5 +1,5 @@
 import { hashPassword } from '../utils/helpers.js'
-import { createUser, getUser } from '../db/user.js'
+import { createUser, getUser, getUserNotes } from '../db/user.js'
 
 const create = async (req, res, next) => {
   const { password, ...rest } = req.body
@@ -17,6 +17,14 @@ const show = async (req, res, next) => {
   res.status(200).json(user)
 }
 
+const notes = async (req, res, next) => {
+  const { id } = req.params
+  const notes = await getUserNotes(id)
+
+  res.status(200).json(notes)
+}
+
 export default {
-  create, show
+  create, show,
+  notes
 }

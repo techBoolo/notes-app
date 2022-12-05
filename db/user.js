@@ -15,3 +15,14 @@ export async function createUser({ name, username, password}) {
   delete user.password
   return user
 }
+
+export const getUserNotes = async (id) => {
+  const stmt = `select notes._id, content, important, date, user, name, username 
+    from users 
+    inner join notes 
+    on users._id = notes.user 
+    where user = ?` 
+  const [ notes ] = await pool.query(stmt, [id])
+
+  return notes
+}
