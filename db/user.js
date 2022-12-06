@@ -26,3 +26,11 @@ export const getUserNotes = async (id) => {
 
   return notes
 }
+
+export const findUserByUsername = async (username) => {
+  const stmt = `select * from users where username = ?`
+  
+  const [ user ] = await pool.query(stmt, [username])
+
+  return user[0]
+}

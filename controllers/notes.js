@@ -1,4 +1,5 @@
 import { getNotes, getNote, createNote, deleteNote, updateNoteImportance } from '../db/note.js'
+import { getTokenFrom, verifyJWT } from '../utils/helpers.js'
 import ErrorResponse from '../utils/errorResponse.js'
 import('express-async-errors')
 
@@ -9,17 +10,23 @@ const index = async (req, res) => {
 
 const create = async (req, res, next) => {
     const body = req.body
-    if(!body.content) {
-       return next(new ErrorResponse(400, 'content missingg'))
+    try {
+      const token = await getTokenFrom(req)
+      const response = await verifyJWT(token)
+      if(!body.content) {
+         throw new ErrorResponse(400, 'content missingg')
+      }
+      const userData = { 
+        content: body.content,
+        date: new Date(),
+        important: body.important || Math.random() > 0.5 ? true : false,
+        user: response.id
+      }
+      const note = await createNote(userData) 
+      res.status(201).json(note)
+    } catch (err) {
+      return next(err)
     }
-    const userData = { 
-      content: body.content,
-      date: new Date(),
-      important: body.important || Math.random() > 0.5 ? true : false,
-      user: 2
-    }
-    const note = await createNote(userData) 
-    res.status(201).json(note)
 }
 
 const show = async (req, res, next) => {

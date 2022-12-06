@@ -5,6 +5,7 @@ import errorHandler  from './middlewares/errorHandler.js'
 import logger  from './middlewares/logger.js'
 import notesRoute from './routes/notes.js'
 import usersRoute from './routes/users.js'
+import 'express-async-errors'
 
 const app = express()
 

@@ -12,4 +12,7 @@ router.route('/:id')
 router.route('/:id/notes') 
   .get(usersController.notes)
 
+router.route('/login')
+  .post(usersController.login)
+
 export default router
